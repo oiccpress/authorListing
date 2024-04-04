@@ -1,0 +1,2 @@
+msgid "plugins.authorListing.heading"
+msgstr "Authors"
