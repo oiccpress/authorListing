@@ -14,7 +14,9 @@
 
 namespace APP\plugins\generic\authorListing;
 
+use APP\core\Application;
 use Illuminate\Support\Facades\DB;
+use PKP\core\PKPApplication;
 use PKP\plugins\GenericPlugin;
 use PKP\plugins\Hook;
 
@@ -27,9 +29,37 @@ class AuthorListingPlugin extends GenericPlugin {
         if ($success && $this->getEnabled()) {
             Hook::add( 'Templates::Admin::Index::AdminFunctions', [$this, 'regenerate'] );
             Hook::add('LoadHandler', [$this, 'setPageHandler']);
+            Hook::add('NavigationMenus::itemTypes', [$this, 'menuItemType']);
+            Hook::add('NavigationMenus::displaySettings', [ $this, 'menuDisplaySettings' ]);
         }
 
         return $success;
+    }
+
+    public function menuDisplaySettings($hookName, $args)
+    {
+        $request = Application::get()->getRequest();
+        $dispatcher = $request->getDispatcher();
+        $menuItem = $args[0];
+        if($menuItem->getType() == 'NMI_AUTHOR_LISTING') {
+            $menuItem->setUrl($dispatcher->url(
+                $request,
+                PKPApplication::ROUTE_PAGE,
+                null,
+                'authors',
+                null,
+                null
+            ));
+        }
+    }
+
+    public function menuItemType($hookName, $args)
+    {
+        $itemTypes = &$args[0];
+        $itemTypes['NMI_AUTHOR_LISTING'] = [
+            'title' => 'Author Listing',
+            'description' => 'Author Listing',
+        ];
     }
 
     /**
