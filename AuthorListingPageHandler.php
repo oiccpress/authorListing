@@ -42,6 +42,37 @@ class AuthorListingPageHandler extends Handler {
             WHERE context_id = ?
             ORDER BY familyName, givenName ASC    
         ', [ $context->getId() ]);
+
+        if(@$_GET['_show_data']) { // TODO: check if admin or not to show this??
+            echo '<p>Debug level data for author listing:</p>';
+            echo '<table><tr><th>Author Hash</th><th>GiveName</th><th>FamilyName</th><th>Affiliation</th><th>Associated Articles</th></tr>';
+            foreach($authors as $author) {
+                echo '<tr><td>' . $author->unique . '</td><td>' . $author->givenName . '</td><td>' . $author->familyName . '</td><td>' . $author->affiliation . '</td>';
+                echo '<td>';
+                // Lookup articles assigned to
+                $data = DB::select('
+                    SELECT * FROM authors
+                    INNER JOIN publications ON authors.publication_id = publications.publication_id
+                    WHERE email = ? AND publications.status = 3
+                ', [ $author->email ]);
+                foreach($data as $item) {
+                    echo '<a href="../article/view/' . $item->submission_id . '">' . $item->submission_id . '</a> ';
+                }
+                echo '</td>';
+                echo '</tr>';
+            }
+            echo '</tr></table>';
+        }
+
+        $authors = array_map(function($item) {
+            $item->familyName = trim($item->familyName);
+            $item->givenName = trim($item->givenName);
+            return $item;
+        }, $authors);
+        $authors = array_filter($authors, function($item) {
+            return strlen($item->familyName) > 0 && strlen($item->givenName) > 0;
+        });
+
         $templateMgr->assign('authors', $authors);
 
         return $templateMgr->display(

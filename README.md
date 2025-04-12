@@ -10,8 +10,9 @@ the journal ID they belong to.
 
 The unique value is calculated by using preferrably the author's ORCID and falls back towards their email address.
 
-License TBC
+## OICC Press in collaboration with Invisible Dragon
 
-## Author
+![OICC Press in Collaboration with Invisible Dragon](https://images.invisibledragonltd.com/oicc-collab.png)
 
-Joe Simpson @ Invisible Dragon on behalf of OICC Press
+This project is brought to you by [Invisible Dragon](https://invisibledragonltd.com/ojs/) in collaboration with
+[OICC Press](https://oiccpress.com/)

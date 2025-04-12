@@ -120,6 +120,7 @@ class AuthorListingPlugin extends GenericPlugin {
                 INNER JOIN `publications` ON `publications`.`publication_id` = `authors`.`publication_id`
                 INNER JOIN `submissions` ON `submissions`.`current_publication_id` = `publications`.`publication_id`
                 LEFT OUTER JOIN `author_settings` ON `author_settings`.`author_id` = `authors`.`author_id` AND `author_settings`.`setting_name` = 'orcid'
+                WHERE publications.status = 3 AND submissions.status = 3
                 GROUP BY email, context_id, `author_settings`.`setting_value`
             ) authorData
             GROUP BY `authorData`.`unique`;
