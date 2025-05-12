@@ -15,7 +15,7 @@
 				{/if}
 				<a class="d-block"
 						title="{$author->affiliation|escape:'htmlall'}"
-						href="{url page="search"}?authors={$author->givenName|escape:'url'} {$author->familyName|escape:'url'}">
+						href="{url page="authors"}/view/{$author->givenName|replace:' ':'+'|escape:'url'}+{$author->familyName|replace:' ':'+'|escape:'url'}">
 					{$author->familyName}, {$author->givenName}
 				</a>
 				{capture assign="lastLetter"}{$author->letter}{/capture}

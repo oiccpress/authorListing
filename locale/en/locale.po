@@ -1,2 +1,5 @@
 msgid "plugins.authorListing.heading"
 msgstr "Authors"
+
+msgid "plugins.authorListing.page"
+msgstr "Articles with Author"
