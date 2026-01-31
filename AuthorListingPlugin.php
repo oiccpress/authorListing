@@ -112,18 +112,40 @@ class AuthorListingPlugin extends GenericPlugin {
 
         // With a single DB query populate this table with all of the relevant data
         // Essentially we use `unique` as either ORCID or email (whatever is available) as an SHA1 purely to
-        // have some sense of a "unique author" to display
+        // have some sense of a "unique author" to display.
+        // If the email however is noreply@oiccpress.com (or similar) we assume the author did not
+        // have an email address for whatever reason, and to instead use FamilynameGivename as that is the
+        // only thing we can cling onto in this case
+        $email = 'noreply@' . $_SERVER['HTTP_HOST'];
+        $email = DB::escape($email);
         $sql = "
             INSERT INTO `journal_authors` (`unique`, `context_id`, `author_id`)
             SELECT SHA1(`unique`) AS `unique`, MIN(`context_id`) AS context_id, MIN(`author_id`) AS author_id FROM (
-                SELECT IFNULL(  `author_settings`.`setting_value`, `authors`.`email` ) AS `unique`, `submissions`.`context_id`, MIN(`authors`.`author_id`) AS author_id FROM `authors`
+                SELECT IFNULL(
+                        orcid.`setting_value`,
+                        IF(
+                            `authors`.`email` = $email,
+                            CONCAT( `familyName`.`setting_value`, givenName.`setting_value` ),
+                            `authors`.`email`
+                        )
+                    ) AS `unique`,
+                    `submissions`.`context_id`,
+                    MIN(`authors`.`author_id`) AS author_id
+                FROM `authors`
                 INNER JOIN `publications` ON `publications`.`publication_id` = `authors`.`publication_id`
                 INNER JOIN `submissions` ON `submissions`.`current_publication_id` = `publications`.`publication_id`
-                LEFT OUTER JOIN `author_settings` ON `author_settings`.`author_id` = `authors`.`author_id` AND `author_settings`.`setting_name` = 'orcid'
+                LEFT OUTER JOIN `author_settings` orcid ON orcid.`author_id` = `authors`.`author_id` AND orcid.`setting_name` = 'orcid'
+                LEFT OUTER JOIN `author_settings` givenName ON givenName.`author_id` = `authors`.`author_id` AND givenName.`setting_name` = 'givenName'
+                LEFT OUTER JOIN `author_settings` familyName ON familyName.`author_id` = `authors`.`author_id` AND familyName.`setting_name` = 'familyName'
                 WHERE publications.status = 3 AND submissions.status = 3
-                GROUP BY email, context_id, `author_settings`.`setting_value`
+                GROUP BY
+                    email,
+                    context_id,
+                    orcid.`setting_value`,
+                    familyName.`setting_value`,
+                    givenName.`setting_value`
             ) authorData
-            GROUP BY `authorData`.`unique`;
+            GROUP BY `authorData`.`unique`, `context_id`;
         ";
         DB::affectingStatement($sql);
 
